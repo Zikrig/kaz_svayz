@@ -9,6 +9,7 @@
 - авто-таймаут процесса (5 минут для потребителя, 10 минут для поставщика)
 - админка: статистика, назначение роли, рассылка
 - счетчик заявок пользователя в `users.sent_requests_count`
+- CRUD API для всех таблиц БД
 
 ## Стек
 
@@ -28,6 +29,10 @@
 docker compose up --build
 ```
 
+После запуска API доступно:
+- Swagger UI: `http://localhost:8000/docs`
+- OpenAPI JSON: `http://localhost:8000/openapi.json`
+
 ## Локальный запуск (без Docker)
 
 ```bash
@@ -46,6 +51,24 @@ python -m app.main
 - отклик поставщика
 - просмотр откликов и контакт
 - админ-панель
+
+## CRUD API
+
+Реализован полный CRUD для таблиц:
+- `users`
+- `requests` (таблица `supply_requests`)
+- `responses` (таблица `supplier_responses`)
+
+Эндпоинты на каждую сущность:
+- `GET /<entity>` — список (с `limit`, `offset`)
+- `GET /<entity>/{id}` — одна запись
+- `POST /<entity>` — создание
+- `PUT /<entity>/{id}` — полная замена
+- `PATCH /<entity>/{id}` — частичное изменение
+- `DELETE /<entity>/{id}` — удаление
+
+Если в `.env` задан `API_TOKEN`, API требует заголовок:
+- `x-api-key: <API_TOKEN>`
 
 ## Что можно расширить дальше
 

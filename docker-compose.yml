@@ -6,3 +6,13 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+  api:
+    build: .
+    command: uvicorn app.api:app --host 0.0.0.0 --port 8000
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "9944:8000"
+    restart: unless-stopped
