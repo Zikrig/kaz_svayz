@@ -9,7 +9,6 @@
 - авто-таймаут процесса (5 минут для потребителя, 10 минут для поставщика)
 - админка: статистика, назначение роли, рассылка
 - счетчик заявок пользователя в `users.sent_requests_count`
-- CRUD API для всех таблиц БД
 
 ## Стек
 
@@ -23,15 +22,27 @@
 
 1. Скопируйте `.env.example` в `.env`
 2. Заполните `BOT_TOKEN` и `ADMIN_IDS`
-3. Запустите:
+3. Для Directus заполните:
+   - `DIRECTUS_KEY`
+   - `DIRECTUS_SECRET`
+   - `DIRECTUS_ADMIN_EMAIL`
+   - `DIRECTUS_ADMIN_PASSWORD`
+4. Запустите:
 
 ```bash
 docker compose up --build
 ```
 
-После запуска API доступно:
-- Swagger UI: `http://localhost:8000/docs`
-- OpenAPI JSON: `http://localhost:8000/openapi.json`
+## Directus (просмотр/редактирование строк БД)
+
+- URL: `http://localhost:8055`
+- Вход: `DIRECTUS_ADMIN_EMAIL` / `DIRECTUS_ADMIN_PASSWORD`
+- Directus подключен к той же SQLite БД, что и бот: `./data/bot.db`
+
+После входа:
+- откройте `Settings -> Data Model`
+- для таблиц `users`, `supply_requests`, `supplier_responses` создайте коллекции из existing tables
+- после этого можно смотреть и менять каждую строку через раздел `Content`
 
 ## Локальный запуск (без Docker)
 
@@ -51,24 +62,6 @@ python -m app.main
 - отклик поставщика
 - просмотр откликов и контакт
 - админ-панель
-
-## CRUD API
-
-Реализован полный CRUD для таблиц:
-- `users`
-- `requests` (таблица `supply_requests`)
-- `responses` (таблица `supplier_responses`)
-
-Эндпоинты на каждую сущность:
-- `GET /<entity>` — список (с `limit`, `offset`)
-- `GET /<entity>/{id}` — одна запись
-- `POST /<entity>` — создание
-- `PUT /<entity>/{id}` — полная замена
-- `PATCH /<entity>/{id}` — частичное изменение
-- `DELETE /<entity>/{id}` — удаление
-
-Если в `.env` задан `API_TOKEN`, API требует заголовок:
-- `x-api-key: <API_TOKEN>`
 
 ## Что можно расширить дальше
 

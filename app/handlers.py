@@ -781,6 +781,4 @@ async def admin_broadcast_input(message: Message, state: FSMContext, admin_ids: 
 
 @router.message()
 async def fallback(message: Message) -> None:
-    async with _sf()() as session:
-        user = await get_or_create_user(session, message.from_user)
-    await send_main_menu(message, user)
+    await message.answer("Используйте /start для начала или /menu для меню.")

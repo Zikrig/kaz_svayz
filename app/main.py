@@ -13,8 +13,6 @@ from app.services import ProcessGate, timeout_watcher
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
     settings = load_settings()
-    if not settings.bot_token:
-        raise RuntimeError("BOT_TOKEN is required to run the Telegram bot.")
 
     db.init_db(settings.database_url)
     await db.create_tables()

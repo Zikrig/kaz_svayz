@@ -6,16 +6,17 @@ from dotenv import load_dotenv
 
 @dataclass
 class Settings:
-    bot_token: str | None
+    bot_token: str
     admin_ids: set[int]
     database_url: str
-    api_token: str | None
 
 
 def load_settings() -> Settings:
     load_dotenv()
 
-    token = os.getenv("BOT_TOKEN", "").strip() or None
+    token = os.getenv("BOT_TOKEN", "").strip()
+    if not token:
+        raise RuntimeError("BOT_TOKEN is required in .env")
 
     raw_admin_ids = os.getenv("ADMIN_IDS", "")
     admin_ids: set[int] = set()
@@ -25,10 +26,4 @@ def load_settings() -> Settings:
             admin_ids.add(int(value))
 
     database_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./data/bot.db")
-    api_token = os.getenv("API_TOKEN", "").strip() or None
-    return Settings(
-        bot_token=token,
-        admin_ids=admin_ids,
-        database_url=database_url,
-        api_token=api_token,
-    )
+    return Settings(bot_token=token, admin_ids=admin_ids, database_url=database_url)

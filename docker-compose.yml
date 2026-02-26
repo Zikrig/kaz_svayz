@@ -6,13 +6,21 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
-  api:
-    build: .
-    command: uvicorn app.api:app --host 0.0.0.0 --port 8000
+
+  directus:
+    image: directus/directus:11
     env_file:
       - .env
-    volumes:
-      - ./data:/app/data
     ports:
-      - "9944:8000"
+      - "8055:8055"
+    environment:
+      KEY: ${DIRECTUS_KEY}
+      SECRET: ${DIRECTUS_SECRET}
+      ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD}
+      DB_CLIENT: sqlite3
+      DB_FILENAME: /data/bot.db
+    volumes:
+      - ./data:/data
+      - ./directus-uploads:/directus/uploads
     restart: unless-stopped
