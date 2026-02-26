@@ -14,5 +14,5 @@ services:
     volumes:
       - ./data:/app/data
     ports:
-      - "9944:8000"
+      - "8000:8000"
     restart: unless-stopped
