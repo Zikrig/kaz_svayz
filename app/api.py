@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -192,13 +192,19 @@ async def update_user(
     return item
 
 
-@app.delete("/users/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(check_api_key)])
-async def delete_user(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> None:
+@app.delete(
+    "/users/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    dependencies=[Depends(check_api_key)],
+)
+async def delete_user(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> Response:
     item = await session.get(User, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="User not found")
     await session.delete(item)
     await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.get("/requests", response_model=list[RequestOut], dependencies=[Depends(check_api_key)])
@@ -270,14 +276,16 @@ async def update_request(
 @app.delete(
     "/requests/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     dependencies=[Depends(check_api_key)],
 )
-async def delete_request(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> None:
+async def delete_request(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> Response:
     item = await session.get(SupplyRequest, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Request not found")
     await session.delete(item)
     await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.get("/responses", response_model=list[ResponseOut], dependencies=[Depends(check_api_key)])
@@ -349,11 +357,13 @@ async def update_response(
 @app.delete(
     "/responses/{item_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
     dependencies=[Depends(check_api_key)],
 )
-async def delete_response(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> None:
+async def delete_response(item_id: int, session: Annotated[AsyncSession, Depends(get_db)]) -> Response:
     item = await session.get(SupplierResponse, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Response not found")
     await session.delete(item)
     await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
