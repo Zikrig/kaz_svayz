@@ -29,7 +29,6 @@ def menu_kb(role: str) -> InlineKeyboardMarkup:
             ]
         )
 
-    rows.append([InlineKeyboardButton(text="Показать меню снова", callback_data="menu:refresh")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
