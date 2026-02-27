@@ -130,3 +130,14 @@ def admin_menu_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="Рассылка", callback_data="admin:broadcast")],
         ]
     )
+
+
+def admin_set_role_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Потребитель", callback_data="admin:set_role:consumer")],
+            [InlineKeyboardButton(text="Поставщик", callback_data="admin:set_role:supplier")],
+            [InlineKeyboardButton(text="Админ", callback_data="admin:set_role:admin")],
+            [InlineKeyboardButton(text="Отмена", callback_data="admin:set_role:cancel")],
+        ]
+    )

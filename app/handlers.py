@@ -170,7 +170,10 @@ async def consumer_request_add_photo(message: Message, state: FSMContext) -> Non
     items = data.get("request_photos", [])
     items.append({"type": "photo", "file_id": message.photo[-1].file_id})
     await state.update_data(request_photos=items)
-    await message.answer("Фото добавлено. Можно отправить еще или нажать Готово.")
+    await message.answer(
+        "Фото добавлено. Можно отправить еще или нажать Готово.",
+        reply_markup=keyboards.done_kb("req:photos_done"),
+    )
 
 
 @router.message(ConsumerRequestState.waiting_photos, F.document)
@@ -179,7 +182,10 @@ async def consumer_request_add_doc(message: Message, state: FSMContext) -> None:
     items = data.get("request_photos", [])
     items.append({"type": "document", "file_id": message.document.file_id})
     await state.update_data(request_photos=items)
-    await message.answer("Файл добавлен. Можно отправить еще или нажать Готово.")
+    await message.answer(
+        "Файл добавлен. Можно отправить еще или нажать Готово.",
+        reply_markup=keyboards.done_kb("req:photos_done"),
+    )
 
 
 @router.callback_query(F.data == "req:photos_done")
@@ -533,7 +539,10 @@ async def supplier_add_photo(message: Message, state: FSMContext) -> None:
     photos = data.get("response_photos", [])
     photos.append({"type": "photo", "file_id": message.photo[-1].file_id})
     await state.update_data(response_photos=photos)
-    await message.answer("Фото добавлено. Можно отправить еще или нажать Готово.")
+    await message.answer(
+        "Фото добавлено. Можно отправить еще или нажать Готово.",
+        reply_markup=keyboards.done_kb("sup:photos_done"),
+    )
 
 
 @router.message(SupplierResponseState.waiting_photos, F.document)
@@ -542,7 +551,10 @@ async def supplier_add_document(message: Message, state: FSMContext) -> None:
     photos = data.get("response_photos", [])
     photos.append({"type": "document", "file_id": message.document.file_id})
     await state.update_data(response_photos=photos)
-    await message.answer("Файл добавлен. Можно отправить еще или нажать Готово.")
+    await message.answer(
+        "Файл добавлен. Можно отправить еще или нажать Готово.",
+        reply_markup=keyboards.done_kb("sup:photos_done"),
+    )
 
 
 @router.callback_query(F.data == "sup:photos_done")
@@ -703,39 +715,54 @@ async def admin_set_role_tg_input(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(target_tg_id=int(raw))
     await state.set_state(AdminState.waiting_set_role_name)
-    await message.answer("Введите роль: consumer / supplier / admin")
+    await message.answer(
+        "Выберите роль для пользователя:",
+        reply_markup=keyboards.admin_set_role_kb(),
+    )
 
 
-@router.message(AdminState.waiting_set_role_name)
-async def admin_set_role_name_input(message: Message, state: FSMContext, admin_ids: set[int]) -> None:
-    role = (message.text or "").strip().lower()
+@router.callback_query(AdminState.waiting_set_role_name, F.data == "admin:set_role:cancel")
+async def admin_set_role_cancel(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await state.clear()
+    await callback.message.answer("Смена роли отменена.")
+
+
+@router.callback_query(AdminState.waiting_set_role_name, F.data.startswith("admin:set_role:"))
+async def admin_set_role_name_input(
+    callback: CallbackQuery,
+    state: FSMContext,
+    admin_ids: set[int],
+) -> None:
+    await callback.answer()
+    role = callback.data.split(":")[3]
     if role not in {"consumer", "supplier", "admin"}:
-        await message.answer("Допустимые роли: consumer / supplier / admin")
+        await callback.message.answer("Некорректная роль.")
         return
 
     data = await state.get_data()
     target_tg_id = data.get("target_tg_id")
     if not target_tg_id:
-        await message.answer("Не найден target_tg_id, начните заново /admin.")
+        await callback.message.answer("Не найден target_tg_id, начните заново /admin.")
         await state.clear()
         return
 
     async with _sf()() as session:
-        admin_user = await get_or_create_user(session, message.from_user)
+        admin_user = await get_or_create_user(session, callback.from_user)
         if not _require_admin(admin_user, admin_ids):
-            await message.answer("Нет доступа.")
+            await callback.message.answer("Нет доступа.")
             await state.clear()
             return
         stmt = select(User).where(User.tg_id == target_tg_id)
         target = (await session.execute(stmt)).scalar_one_or_none()
         if not target:
-            await message.answer("Пользователь не найден в базе.")
+            await callback.message.answer("Пользователь не найден в базе.")
             await state.clear()
             return
         target.role = role
         await session.commit()
 
-    await message.answer(f"Роль пользователя {target_tg_id} изменена на {role}.")
+    await callback.message.answer(f"Роль пользователя {target_tg_id} изменена на {role}.")
     await state.clear()
 
 
